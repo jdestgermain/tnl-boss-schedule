@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Throne Bosses</title>
+  <style>
+:root { --ink: #18251f; --muted: #6e7b73; --line: #dce5dd; --paper: #f7f8f4; --card: #ffffff; --mint: #c9efdc; --mint-strong: #176b4a; --coral: #ff8f70; --shadow: 0 20px 50px rgba(43, 75, 59, 0.08); }
+* { box-sizing: border-box; }
+body { margin: 0; color: var(--ink); background: radial-gradient(circle at 85% 8%, #e7f6eb 0, transparent 30%), var(--paper); font-family: Manrope, sans-serif; }
+button, input { font: inherit; } button { cursor: pointer; }
+.app-shell { width: min(1120px, calc(100% - 40px)); margin: 0 auto; padding: 58px 0 48px; }
+.masthead { display: flex; justify-content: space-between; align-items: end; gap: 32px; }
+.eyebrow { color: var(--mint-strong); font: 500 11px/1 DM Mono, monospace; letter-spacing: .12em; margin: 0 0 14px; }
+h1, h2, p { margin-top: 0; } h1 { font-size: clamp(36px, 6vw, 72px); letter-spacing: -.06em; line-height: .98; margin-bottom: 16px; }
+.lede { color: var(--muted); font-size: 16px; margin-bottom: 0; }
+.status { background: var(--card); border: 1px solid var(--line); border-radius: 999px; color: var(--muted); font: 12px DM Mono, monospace; padding: 11px 15px; white-space: nowrap; }
+.controls { display: flex; gap: 10px; margin: 42px 0 18px; }
+.search-wrap { align-items: center; background: var(--card); border: 1px solid var(--line); border-radius: 8px; display: flex; flex: 1; gap: 10px; padding: 0 14px; box-shadow: var(--shadow); }
+.search-icon { color: var(--mint-strong); font-size: 25px; line-height: 0; transform: translateY(-2px); }
+input { background: none; border: 0; color: var(--ink); min-width: 0; outline: 0; padding: 15px 0; width: 100%; } input::placeholder { color: #a0aaa2; }
+kbd { border: 1px solid var(--line); border-radius: 4px; color: var(--muted); font: 12px DM Mono, monospace; padding: 3px 6px; }
+.today-button { background: var(--ink); border: 0; border-radius: 8px; color: white; padding: 0 20px; }
+.boss-picker { display: flex; flex-wrap: wrap; gap: 8px; min-height: 38px; }
+.boss-chip { background: transparent; border: 1px solid var(--line); border-radius: 999px; color: var(--muted); font-size: 12px; padding: 8px 12px; }
+.boss-chip:hover, .boss-chip.active { background: var(--mint); border-color: var(--mint); color: var(--ink); }
+.selected-boss { align-items: end; display: flex; justify-content: space-between; margin: 54px 0 24px; }
+.selected-boss h2 { font-size: 31px; letter-spacing: -.04em; margin-bottom: 0; }
+.next-spawn { color: var(--mint-strong); font: 500 13px DM Mono, monospace; margin-bottom: 4px; text-align: right; }
+.calendar-section { background: var(--card); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); overflow: hidden; }
+.calendar-heading { align-items: center; display: flex; justify-content: center; gap: 18px; padding: 20px; }
+.calendar-heading h2 { font-size: 18px; margin: 0; min-width: 165px; text-align: center; }
+.calendar-note { color: var(--muted); font: 10px DM Mono, monospace; margin: 5px 0 0; text-align: center; }
+.icon-button { background: transparent; border: 1px solid var(--line); border-radius: 6px; color: var(--ink); font-size: 18px; height: 34px; width: 34px; }
+.icon-button:hover { background: var(--mint); border-color: var(--mint); }
+.calendar { display: grid; grid-template-columns: repeat(7, 1fr); border-top: 1px solid var(--line); }
+.weekday { color: var(--muted); font: 500 10px DM Mono, monospace; letter-spacing: .08em; padding: 13px 12px; }
+.day { border-right: 1px solid var(--line); border-top: 1px solid var(--line); min-height: 126px; padding: 11px 12px; }
+.day:nth-child(7n) { border-right: 0; } .day.muted { background: #fbfcfa; color: #b0bab2; } .day.today { background: #f0faf3; }
+.day-number { color: var(--muted); font: 500 12px DM Mono, monospace; }
+.day.today .day-number { background: var(--coral); border-radius: 50%; color: white; display: inline-grid; height: 25px; place-items: center; width: 25px; }
+.spawn { background: var(--mint); border-radius: 4px; color: var(--ink); display: block; font: 500 11px DM Mono, monospace; margin-top: 10px; padding: 6px; }
+.spawn + .spawn { margin-top: 4px; } .spawn.guild-pvp { background: #ffe0d5; border-left: 3px solid var(--coral); } .spawn.predicted { background: #fff1c9; border-left: 3px dashed #c38a19; } .spawn small { display: block; font: 500 9px Manrope, sans-serif; margin-top: 3px; }
+.footnote { color: var(--muted); font: 11px DM Mono, monospace; margin: 18px 0 0; text-align: right; }
+.footnote a { color: var(--mint-strong); } .legend.predicted { color: #a36d00; }
+.sr-only { clip: rect(0, 0, 0, 0); clip-path: inset(50%); height: 1px; overflow: hidden; position: absolute; white-space: nowrap; width: 1px; }
+@media (max-width: 700px) { .app-shell { padding-top: 34px; width: min(100% - 24px, 560px); } .masthead, .selected-boss { align-items: start; flex-direction: column; } .status { align-self: start; } .controls { margin-top: 30px; } .today-button { padding: 0 14px; } .selected-boss { gap: 12px; margin-top: 38px; } .next-spawn { text-align: left; } .day { min-height: 96px; padding: 8px 5px; } .weekday { padding: 10px 5px; font-size: 9px; } .spawn { font-size: 9px; padding: 5px 3px; } kbd { display: none; } }
+  </style>
+</head>
+<body>
+  <main class="app-shell">
+    <header class="masthead">
+      <div>
+        <p class="eyebrow">THRONE & LIBERTY</p>
+        <h1>Boss calendar</h1>
+        <p class="lede">Find a boss. See the next time it appears where you are.</p>
+      </div>
+      <div class="status" id="status" aria-live="polite">Loading schedule...</div>
+    </header>
+
+    <section class="controls" aria-label="Boss controls">
+      <label class="search-wrap">
+        <span class="sr-only">Search for a boss</span>
+        <span class="search-icon" aria-hidden="true">⌕</span>
+        <input id="boss-search" type="search" placeholder="Search bosses" autocomplete="off">
+        <kbd>/</kbd>
+      </label>
+      <button class="today-button" id="today-button" type="button">Today</button>
+    </section>
+
+    <section class="boss-picker" id="boss-picker" aria-label="Bosses"></section>
+
+    <section class="selected-boss" aria-live="polite">
+      <div>
+        <p class="eyebrow">SELECTED BOSS</p>
+        <h2 id="selected-name">Choose a boss</h2>
+      </div>
+      <p class="next-spawn" id="next-spawn">Search above to get started.</p>
+    </section>
+
+    <section class="calendar-section">
+      <div class="calendar-heading">
+        <button class="icon-button" id="previous-month" type="button" aria-label="Previous month">←</button>
+        <div>
+          <h2 id="month-label"></h2>
+          <p class="calendar-note">14-day rotation projected forward</p>
+        </div>
+        <button class="icon-button" id="next-month" type="button" aria-label="Next month">→</button>
+      </div>
+      <div class="calendar" id="calendar" role="grid" aria-label="Boss spawn calendar"></div>
+    </section>
+
+    <p class="footnote">Times are local · regular bosses repeat every 14 days · <span class="legend predicted">Predicted Arch</span> · data from <a href="https://thronewatch.app/" target="_blank" rel="noreferrer">Throne Watch</a></p>
+  </main>
+  <script>
+    window.EMBEDDED_SCHEDULE = {
+      _bossIds: {
+        Adentus: 'adentus', 'Ascended Adentus': 'adentus_asc', Ahzreil: 'ahzreil', 'Ascended Ahzreil': 'ahzreil_asc', Aridus: 'aridus', 'Ascended Aridus': 'aridus_asc',
+        Chernobog: 'chernobog', 'Ascended Chernobog': 'chernobog_asc', Cornelius: 'cornelius', 'Ascended Cornelius': 'cornelius_asc', Daigon: 'daigon', 'Ascended Daigon': 'daigon_asc',
+        Deluzhnoa: 'deluzhnoa', 'Ascended Deluzhnoa': 'deluzhnoa_asc', 'Excavator-9': 'excavator9', 'Ascended Excavator-9': 'excavator9_asc', Junobote: 'junobote', 'Ascended Junobote': 'junobote_asc',
+        Kowazan: 'kowazan', 'Ascended Kowazan': 'kowazan_asc', Leviathan: 'leviathan', 'Ascended Leviathan': 'leviathan_asc', Malakar: 'malakar', 'Ascended Malakar': 'malakar_asc',
+        Manticus: 'manticus', 'Ascended Manticus': 'manticus_asc', Minezerok: 'minezerok', 'Ascended Minezerok': 'minezerok_asc', Morokai: 'morokai', 'Ascended Morokai': 'morokai_asc',
+        Nirma: 'nirma', 'Ascended Nirma': 'nirma_asc', 'Pakilo Naru': 'pakilo_naru', 'Ascended Pakilo Naru': 'pakilo_naru_asc', Porfos: 'porfos', Talus: 'talus', 'Ascended Talus': 'talus_asc',
+        Tevent: 'tevent', 'Ascended Tevent': 'tevent_asc', Thuban: 'thuban', Aelon: 'grand_aelon', 'Ascended Aelon': 'grand_aelon_asc', Cordy: 'giant_cordy', 'Ascended Cordy': 'giant_cordy_asc',
+        'Queen Bell': 'queen_bellandir', 'Ascended Queen Bell': 'queen_bellandir_asc', Ramux: 'ramux'
+      },
+      rotationSchedule: {
+        t4Start: '2026-06-25',
+        t4Anchors: [{ effectiveDate: '2026-06-25', cycleDay: 1 }, { effectiveDate: '2026-07-30', cycleDay: 1 }, { effectiveDate: '2026-08-13', cycleDay: 1 }],
+        tiers: { t4: {
+          cycleDays: 14,
+          slots: { ct_0000: '00:00', ct_0100: '01:00', ct_0200: '02:00', ct_0300: '03:00', ct_0500: '05:00', ct_0600: '06:00', ct_0800: '08:00', ct_0900: '09:00', ct_1100: '11:00', ct_1200: '12:00', ct_1300: '13:00', ct_1400: '14:00', ct_1500: '15:00', ct_1600: '16:00', ct_1700: '17:00', ct_1900: '19:00', ct_2000: '20:00', ct_2030: '20:30', ct_2100: '21:00', ct_2200: '22:00', ct_2230: '22:30', ct_2300: '23:00', ct_2330: '23:30' },
+          days: {
+            1: { ct_1300: 'thuban | adentus_asc', ct_1600: 'pakilo_naru_asc | nirma_asc', ct_2000: 'daigon_asc | ahzreil_asc', ct_2030: 'daigon_asc !gpvp', ct_2300: 'leviathan_asc | excavator9_asc', ct_2330: 'leviathan_asc !gpvp', ct_0100: 'manticus_asc | minezerok_asc' },
+            2: { ct_1300: 'porfos | junobote_asc', ct_1600: 'pakilo_naru_asc | morokai_asc', ct_2030: 'manticus_asc !gpvp', ct_2200: 'manticus_asc | cornelius_asc', ct_2300: 'thuban | adentus_asc', ct_2330: 'thuban !gpvp', ct_0100: 'porfos | chernobog_asc' },
+            3: { ct_1300: 'leviathan_asc | ahzreil_asc', ct_1600: 'thuban | aridus_asc', ct_2030: 'daigon_asc !gpvp', ct_2200: 'daigon_asc | malakar_asc', ct_2300: 'porfos | kowazan_asc', ct_2330: 'porfos !gpvp', ct_0100: 'thuban | talus_asc' },
+            4: { ct_1300: 'daigon_asc | grand_aelon_asc', ct_1600: 'porfos | adentus_asc', ct_2000: 'pakilo_naru_asc | nirma_asc', ct_2030: 'pakilo_naru_asc !gpvp', ct_2300: 'thuban | ahzreil_asc', ct_2330: 'thuban !gpvp', ct_0100: 'daigon_asc | excavator9_asc' },
+            5: { ct_1300: 'pakilo_naru_asc | minezerok_asc', ct_1600: 'leviathan_asc | junobote_asc', ct_2000: 'manticus_asc | morokai_asc', ct_2030: 'manticus_asc !gpvp', ct_2300: 'daigon_asc | cornelius_asc', ct_2330: 'daigon_asc !gpvp', ct_0100: 'pakilo_naru_asc | adentus_asc' },
+            6: { ct_1300: 'porfos | chernobog_asc', ct_1600: 'daigon_asc | ahzreil_asc', ct_2030: 'leviathan_asc !gpvp', ct_2200: 'leviathan_asc | aridus_asc', ct_2300: 'thuban | malakar_asc', ct_2330: 'thuban !gpvp', ct_0100: 'pakilo_naru_asc | kowazan_asc' },
+            7: { ct_1300: 'manticus_asc | talus_asc', ct_1600: 'leviathan_asc | grand_aelon_asc', ct_2030: 'manticus_asc !gpvp', ct_2200: 'manticus_asc | adentus_asc', ct_2300: 'pakilo_naru_asc | nirma_asc', ct_2330: 'pakilo_naru_asc !gpvp', ct_0100: 'porfos | ahzreil_asc' },
+            8: { ct_1300: 'pakilo_naru_asc | excavator9_asc', ct_1600: 'manticus_asc | minezerok_asc', ct_2000: 'leviathan_asc | junobote_asc', ct_2030: 'leviathan_asc !gpvp', ct_2300: 'daigon_asc | morokai_asc', ct_2330: 'daigon_asc !gpvp', ct_0100: 'manticus_asc | cornelius_asc' },
+            9: { ct_1300: 'thuban | adentus_asc', ct_1600: 'leviathan_asc | chernobog_asc', ct_2030: 'pakilo_naru_asc !gpvp', ct_2200: 'pakilo_naru_asc | ahzreil_asc', ct_2300: 'porfos | aridus_asc', ct_2330: 'porfos !gpvp', ct_0100: 'thuban | malakar_asc' },
+            10: { ct_1300: 'daigon_asc | kowazan_asc', ct_1600: 'porfos | talus_asc', ct_2030: 'manticus_asc !gpvp', ct_2200: 'manticus_asc | grand_aelon_asc', ct_2300: 'thuban | adentus_asc', ct_2330: 'thuban !gpvp', ct_0100: 'porfos | nirma_asc' },
+            11: { ct_1300: 'daigon_asc | ahzreil_asc', ct_1600: 'thuban | excavator9_asc', ct_2000: 'leviathan_asc | minezerok_asc', ct_2030: 'manticus_asc !gpvp', ct_2300: 'porfos | junobote_asc', ct_2330: 'porfos !gpvp', ct_0100: 'daigon_asc | adentus_asc' },
+            12: { ct_1300: 'pakilo_naru_asc | nirma_asc', ct_1600: 'leviathan_asc | ahzreil_asc', ct_2000: 'daigon_asc | excavator9_asc', ct_2030: 'daigon_asc !gpvp', ct_2300: 'manticus_asc | minezerok_asc', ct_2330: 'manticus_asc !gpvp', ct_0100: 'leviathan_asc | junobote_asc' },
+            13: { ct_1300: 'thuban | morokai_asc', ct_1600: 'daigon_asc | cornelius_asc', ct_2030: 'pakilo_naru_asc !gpvp', ct_2200: 'pakilo_naru_asc | adentus_asc', ct_2300: 'porfos | chernobog_asc', ct_2330: 'porfos !gpvp', ct_0100: 'manticus_asc | ahzreil_asc' },
+            14: { ct_1300: 'leviathan_asc | aridus_asc', ct_1600: 'manticus_asc | malakar_asc', ct_2030: 'pakilo_naru_asc !gpvp', ct_2200: 'pakilo_naru_asc | kowazan_asc', ct_2300: 'leviathan_asc | talus_asc', ct_2330: 'leviathan_asc !gpvp', ct_0100: 'manticus_asc | grand_aelon_asc' }
+          }
+        } },
+        dateExtras: {
+          '2026-09-01': [{ time: '22:00', items: 'Ascended Delu' }], '2026-09-02': [{ time: '19:00', items: 'Ramux' }, { time: '22:00', items: 'Ramux !gpvp | Ascended Queen Bell' }],
+          '2026-09-04': [{ time: '19:00', items: 'Ascended Cordy | Ascended Tevent !gpvp' }, { time: '22:00', items: 'Ascended Cordy' }], '2026-09-05': [{ time: '19:00', items: 'Ramux' }, { time: '22:00', items: 'Ramux | Ascended Cordy !gpvp' }],
+          '2026-09-08': [{ time: '19:00', items: 'Ascended Delu !gpvp | Ascended Queen Bell' }, { time: '22:00', items: 'Ascended Queen Bell' }], '2026-09-09': [{ time: '19:00', items: 'Ramux' }, { time: '22:00', items: 'Ramux | Ascended Tevent !gpvp' }],
+          '2026-09-11': [{ time: '19:00', items: 'Ascended Cordy !gpvp | Ascended Tevent' }, { time: '22:00', items: 'Ascended Tevent' }], '2026-09-12': [{ time: '19:00', items: 'Ramux' }, { time: '22:00', items: 'Ramux !gpvp | Ascended Cordy' }],
+          '2026-09-13': [{ time: '20:00', items: 'Siege !gpvp' }], '2026-09-15': [{ time: '19:00', items: 'Ascended Delu' }, { time: '22:00', items: 'Ascended Delu | Ascended Queen Bell !gpvp' }],
+          '2026-09-16': [{ time: '19:00', items: 'Ramux !gpvp | Ascended Tevent' }, { time: '22:00', items: 'Ramux' }], '2026-09-18': [{ time: '19:00', items: 'Ascended Cordy' }, { time: '22:00', items: 'Ascended Cordy | Ascended Tevent !gpvp' }],
+          '2026-09-19': [{ time: '19:00', items: 'Ramux | Ascended Delu !gpvp' }, { time: '22:00', items: 'Ramux' }]
+        }
+      }
+    };
+  </script>
+  <script>
+const SOURCE = 'https://thronewatch.app/schedule.json';
+const CENTRAL = 'America/Chicago';
+const ARCH_BOSS_IDS = new Set(['ramux', 'deluzhnoa_asc', 'queen_bellandir_asc', 'giant_cordy_asc', 'tevent_asc']);
+const state = { schedule: null, bosses: [], selected: null, month: new Date() };
+const $ = (selector) => document.querySelector(selector);
+const FALLBACK = window.EMBEDDED_SCHEDULE;
+function localDateKey(date) { const parts = new Intl.DateTimeFormat('en-CA', { year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(date); return `${parts.find((p) => p.type === 'year').value}-${parts.find((p) => p.type === 'month').value}-${parts.find((p) => p.type === 'day').value}`; }
+function addDays(key, amount) { const date = new Date(`${key}T12:00:00Z`); date.setUTCDate(date.getUTCDate() + amount); return date.toISOString().slice(0, 10); }
+function dayDifference(from, to) { return Math.round((new Date(`${to}T12:00:00Z`) - new Date(`${from}T12:00:00Z`)) / 86400000); }
+function prettyName(value) { return value.replace(/_asc\b/g, ' Ascended').replace(/_/g, ' ').replace(/\b\w/g, (letter) => letter.toUpperCase()); }
+function parseItems(value) { const text = Array.isArray(value) ? value[0] : value; return String(text).split('|').map((item) => item.trim()).filter(Boolean).map((item) => ({ name: item.replace(/\s+!(gpvp|dpvp)$/, ''), guildPvp: /\s!gpvp$/.test(item) })); }
+function buildBossList(data) { const tier = data.rotationSchedule.tiers.t4; const sources = Object.values(tier.days).flatMap((day) => Object.values(day)); sources.push(...Object.values(data.rotationSchedule.dateExtras || {}).flatMap((entries) => entries.map((entry) => entry.items))); const used = new Set(sources.flatMap((value) => parseItems(value).map((item) => normalizeBossId(item.name)))); return Object.entries(data._bossIds || {}).filter(([, id]) => used.has(id)).map(([name, id]) => ({ name, id })).sort((a, b) => a.name.localeCompare(b.name)); }
+function normalizeBossId(name) { const aliases = { 'Ascended Delu': 'deluzhnoa_asc', 'Ascended Queen Bell': 'queen_bellandir_asc' }; if (aliases[name]) return aliases[name]; const entry = Object.entries(state.schedule._bossIds || {}).find(([label]) => label.toLowerCase() === name.toLowerCase()); return entry ? entry[1] : name; }
+function rotationAnchor(anchors, key) { return anchors.filter((anchor) => anchor.effectiveDate <= key).sort((a, b) => b.effectiveDate.localeCompare(a.effectiveDate))[0]; }
+function eventsForDate(key) { const { rotationSchedule } = state.schedule; const tier = rotationSchedule.tiers.t4; const anchor = rotationAnchor(rotationSchedule.t4Anchors || [{ effectiveDate: rotationSchedule.t4Start, cycleDay: 1 }], key); const gameDay = dayDifference(anchor.effectiveDate, key); const cycle = tier.cycleDays || 14; const rotationDay = ((anchor.cycleDay - 1 + gameDay) % cycle + cycle) % cycle + 1; const events = []; Object.entries(tier.days[String(rotationDay)] || {}).forEach(([slot, value]) => events.push(...eventEntries(key, tier.slots[slot], value))); (rotationSchedule.dateExtras?.[key] || []).forEach((entry) => events.push(...eventEntries(key, entry.time, entry.items, true))); return events; }
+function eventEntries(gameDate, time, value, predicted = false) { if (!time) return []; return parseItems(value).map((item) => { const name = normalizeBossId(item.name); return { name, gameDate, time, displayName: prettyName(name), guildPvp: item.guildPvp, predicted: predicted && ARCH_BOSS_IDS.has(name) }; }); }
+function isSelected(event) { return state.selected && event.name === state.selected.id; }
+function eventDate(event) { return Number(event.time.split(':')[0]) < 3 ? addDays(event.gameDate, 1) : event.gameDate; }
+function centralWallToInstant(date, time) { const [year, month, day] = date.split('-').map(Number); const [hours, minutes] = time.split(':').map(Number); let instant = new Date(Date.UTC(year, month - 1, day, hours, minutes)); const parts = new Intl.DateTimeFormat('en-CA', { timeZone: CENTRAL, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).formatToParts(instant); const actual = Date.UTC(Number(parts.find((part) => part.type === 'year').value), Number(parts.find((part) => part.type === 'month').value) - 1, Number(parts.find((part) => part.type === 'day').value), Number(parts.find((part) => part.type === 'hour').value), Number(parts.find((part) => part.type === 'minute').value)); return new Date(instant.getTime() + Date.UTC(year, month - 1, day, hours, minutes) - actual); }
+function formatLocal(event) { return new Intl.DateTimeFormat(undefined, { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }).format(centralWallToInstant(eventDate(event), event.time)); }
+function localEventDate(event) { return localDateKey(centralWallToInstant(eventDate(event), event.time)); }
+function eventsForLocalDate(key) { return [addDays(key, -1), key, addDays(key, 1)].flatMap((gameDate) => eventsForDate(gameDate)).filter((event) => localEventDate(event) === key); }
+function renderPicker() { const query = $('#boss-search').value.trim().toLowerCase(); const bosses = state.bosses.filter((boss) => boss.name.toLowerCase().includes(query)); $('#boss-picker').innerHTML = bosses.slice(0, 30).map((boss) => `<button class="boss-chip ${state.selected?.id === boss.id ? 'active' : ''}" data-id="${boss.id}" type="button">${boss.name}</button>`).join(''); document.querySelectorAll('.boss-chip').forEach((button) => button.addEventListener('click', () => selectBoss(button.dataset.id))); }
+function selectBoss(id) { state.selected = state.bosses.find((boss) => boss.id === id); $('#selected-name').textContent = state.selected.name; renderPicker(); renderCalendar(); }
+function formatTime(time) { const [hour, minute] = time.split(':').map(Number); return new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: '2-digit' }).format(new Date(2020, 0, 1, hour, minute)); }
+function renderCalendar() { const month = state.month.getMonth(); const year = state.month.getFullYear(); $('#month-label').textContent = new Intl.DateTimeFormat(undefined, { month: 'long', year: 'numeric' }).format(state.month); const first = new Date(year, month, 1); const start = new Date(year, month, 1 - first.getDay()); const today = localDateKey(new Date()); const cells = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'].map((day) => `<div class="weekday" role="columnheader">${day}</div>`); for (let index = 0; index < 42; index += 1) { const date = new Date(start); date.setDate(start.getDate() + index); const key = date.toISOString().slice(0, 10); const events = state.selected ? eventsForLocalDate(key).filter(isSelected).sort((a, b) => centralWallToInstant(eventDate(a), a.time) - centralWallToInstant(eventDate(b), b.time)) : []; cells.push(`<div class="day ${date.getMonth() !== month ? 'muted' : ''} ${key === today ? 'today' : ''}" role="gridcell"><span class="day-number">${date.getDate()}</span>${events.map((event) => `<span class="spawn ${event.guildPvp ? 'guild-pvp' : ''} ${event.predicted ? 'predicted' : ''}">${formatTime(event.time)}${event.guildPvp ? '<small>Guild PvP</small>' : ''}${event.predicted ? '<small>Predicted</small>' : ''}</span>`).join('')}</div>`); } $('#calendar').innerHTML = cells.join(''); updateNextSpawn(); }
+function updateNextSpawn() { if (!state.selected) { $('#next-spawn').textContent = 'Search above to get started.'; return; } const now = new Date(); const candidates = []; for (let offset = -1; offset < 60; offset += 1) { const key = addDays(localDateKey(now), offset); eventsForLocalDate(key).filter(isSelected).forEach((event) => candidates.push({ event, when: centralWallToInstant(eventDate(event), event.time) })); } const next = candidates.sort((a, b) => a.when - b.when).find((candidate) => candidate.when > now); $('#next-spawn').textContent = next ? `Next spawn${next.event.predicted ? ' · Predicted' : ''} · ${formatLocal(next.event)}` : 'No upcoming spawn found.'; }
+function finishLoad() { state.bosses = buildBossList(state.schedule); renderPicker(); selectBoss(state.bosses[0].id); }
+async function load() { try { const response = await fetch(SOURCE); if (!response.ok) throw new Error('Schedule unavailable'); state.schedule = await response.json(); $('#status').textContent = 'Live schedule · 14-day rotation projected'; finishLoad(); } catch (error) { if (!FALLBACK) { $('#status').textContent = 'Could not load schedule'; $('#selected-name').textContent = 'Schedule unavailable'; $('#next-spawn').textContent = 'Check your connection and refresh the page.'; return; } state.schedule = FALLBACK; $('#status').textContent = 'Offline snapshot · 14-day rotation projected'; finishLoad(); } }
+$('#boss-search').addEventListener('input', renderPicker); $('#boss-search').addEventListener('keydown', (event) => { if (event.key === 'Enter' && document.querySelector('.boss-chip')) document.querySelector('.boss-chip').click(); }); $('#today-button').addEventListener('click', () => { state.month = new Date(); renderCalendar(); }); $('#previous-month').addEventListener('click', () => { state.month.setMonth(state.month.getMonth() - 1); renderCalendar(); }); $('#next-month').addEventListener('click', () => { state.month.setMonth(state.month.getMonth() + 1); renderCalendar(); }); document.addEventListener('keydown', (event) => { if (event.key === '/' && document.activeElement !== $('#boss-search')) { event.preventDefault(); $('#boss-search').focus(); } }); load();
+  </script>
+</body>
+</html>
