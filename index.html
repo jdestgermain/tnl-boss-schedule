@@ -20,12 +20,15 @@ h1, h2, p { margin-top: 0; } h1 { font-size: clamp(36px, 6vw, 72px); letter-spac
 .search-icon { color: var(--mint-strong); font-size: 25px; line-height: 0; transform: translateY(-2px); }
 input { background: none; border: 0; color: var(--ink); min-width: 0; outline: 0; padding: 15px 0; width: 100%; } input::placeholder { color: #a0aaa2; }
 kbd { border: 1px solid var(--line); border-radius: 4px; color: var(--muted); font: 12px DM Mono, monospace; padding: 3px 6px; }
-.today-button { background: var(--ink); border: 0; border-radius: 8px; color: white; padding: 0 20px; }
+.today-button { background: transparent; border: 1px solid var(--line); border-radius: 6px; color: var(--ink); font-size: 12px; padding: 8px 12px; }
+.today-button:hover { background: var(--mint); border-color: var(--mint); }
 .boss-picker { display: flex; flex-wrap: wrap; gap: 8px; min-height: 38px; }
 .boss-chip { background: transparent; border: 1px solid var(--line); border-radius: 999px; color: var(--muted); font-size: 12px; padding: 8px 12px; }
 .boss-chip:hover, .boss-chip.active { background: var(--mint); border-color: var(--mint); color: var(--ink); }
+.boss-chip.active::first-letter { color: var(--mint-strong); }
 .selected-boss { align-items: end; display: flex; justify-content: space-between; margin: 54px 0 24px; }
 .selected-boss h2 { font-size: 31px; letter-spacing: -.04em; margin-bottom: 0; }
+.selected-boss #favorite-list { color: var(--muted); font-size: 13px; margin: 8px 0 0; }
 .next-spawn { color: var(--mint-strong); font: 500 13px DM Mono, monospace; margin-bottom: 4px; text-align: right; }
 .calendar-section { background: var(--card); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); overflow: hidden; }
 .calendar-heading { align-items: center; display: flex; justify-content: center; gap: 18px; padding: 20px; }
@@ -40,11 +43,11 @@ kbd { border: 1px solid var(--line); border-radius: 4px; color: var(--muted); fo
 .day-number { color: var(--muted); font: 500 12px DM Mono, monospace; }
 .day.today .day-number { background: var(--coral); border-radius: 50%; color: white; display: inline-grid; height: 25px; place-items: center; width: 25px; }
 .spawn { background: var(--mint); border-radius: 4px; color: var(--ink); display: block; font: 500 11px DM Mono, monospace; margin-top: 10px; padding: 6px; }
-.spawn + .spawn { margin-top: 4px; } .spawn.guild-pvp { background: #ffe0d5; border-left: 3px solid var(--coral); } .spawn.predicted { background: #fff1c9; border-left: 3px dashed #c38a19; } .spawn small { display: block; font: 500 9px Manrope, sans-serif; margin-top: 3px; }
+.spawn + .spawn { margin-top: 4px; } .spawn.guild-pvp { background: #ffe0d5; border-left: 3px solid var(--coral); } .spawn.predicted { background: #fff1c9; border-left: 3px dashed #c38a19; } .spawn.favorite-1 { background: #dce7ff; } .spawn.favorite-2 { background: #eadcff; } .spawn.favorite-3 { background: #d9f0ed; } .spawn.favorite-4 { background: #f3dfc9; } .spawn small { display: block; font: 500 9px Manrope, sans-serif; margin-top: 3px; }
 .footnote { color: var(--muted); font: 11px DM Mono, monospace; margin: 18px 0 0; text-align: right; }
 .footnote a { color: var(--mint-strong); } .legend.predicted { color: #a36d00; }
 .sr-only { clip: rect(0, 0, 0, 0); clip-path: inset(50%); height: 1px; overflow: hidden; position: absolute; white-space: nowrap; width: 1px; }
-@media (max-width: 700px) { .app-shell { padding-top: 34px; width: min(100% - 24px, 560px); } .masthead, .selected-boss { align-items: start; flex-direction: column; } .status { align-self: start; } .controls { margin-top: 30px; } .today-button { padding: 0 14px; } .selected-boss { gap: 12px; margin-top: 38px; } .next-spawn { text-align: left; } .day { min-height: 96px; padding: 8px 5px; } .weekday { padding: 10px 5px; font-size: 9px; } .spawn { font-size: 9px; padding: 5px 3px; } kbd { display: none; } }
+@media (max-width: 700px) { .app-shell { padding-top: 34px; width: min(100% - 24px, 560px); } .masthead, .selected-boss { align-items: start; flex-direction: column; } .status { align-self: start; } .controls { margin-top: 30px; } .selected-boss { gap: 12px; margin-top: 38px; } .next-spawn { text-align: left; } .day { min-height: 96px; padding: 8px 5px; } .weekday { padding: 10px 5px; font-size: 9px; } .spawn { font-size: 9px; padding: 5px 3px; } }
   </style>
 </head>
 <body>
@@ -53,9 +56,7 @@ kbd { border: 1px solid var(--line); border-radius: 4px; color: var(--muted); fo
       <div>
         <p class="eyebrow">THRONE & LIBERTY</p>
         <h1>Boss calendar</h1>
-        <p class="lede">Find a boss. See the next time it appears where you are.</p>
       </div>
-      <div class="status" id="status" aria-live="polite">Loading schedule...</div>
     </header>
 
     <section class="controls" aria-label="Boss controls">
@@ -63,17 +64,16 @@ kbd { border: 1px solid var(--line); border-radius: 4px; color: var(--muted); fo
         <span class="sr-only">Search for a boss</span>
         <span class="search-icon" aria-hidden="true">⌕</span>
         <input id="boss-search" type="search" placeholder="Search bosses" autocomplete="off">
-        <kbd>/</kbd>
       </label>
-      <button class="today-button" id="today-button" type="button">Today</button>
     </section>
 
     <section class="boss-picker" id="boss-picker" aria-label="Bosses"></section>
 
     <section class="selected-boss" aria-live="polite">
       <div>
-        <p class="eyebrow">SELECTED BOSS</p>
-        <h2 id="selected-name">Choose a boss</h2>
+        <p class="eyebrow">FAVORITES</p>
+        <h2 id="selected-name">Choose bosses</h2>
+        <p id="favorite-list">Select bosses above to add them here.</p>
       </div>
       <p class="next-spawn" id="next-spawn">Search above to get started.</p>
     </section>
@@ -85,12 +85,13 @@ kbd { border: 1px solid var(--line); border-radius: 4px; color: var(--muted); fo
           <h2 id="month-label"></h2>
           <p class="calendar-note">14-day rotation projected forward</p>
         </div>
+        <button class="today-button" id="today-button" type="button">Today</button>
         <button class="icon-button" id="next-month" type="button" aria-label="Next month">→</button>
       </div>
       <div class="calendar" id="calendar" role="grid" aria-label="Boss spawn calendar"></div>
     </section>
 
-    <p class="footnote">Times are local · regular bosses repeat every 14 days · <span class="legend predicted">Predicted Arch</span> · data from <a href="https://thronewatch.app/" target="_blank" rel="noreferrer">Throne Watch</a></p>
+    <p class="footnote">Local time · 14-day rotation · <span class="legend predicted">Predicted Arch</span> · <a href="https://thronewatch.app/" target="_blank" rel="noreferrer">Throne Watch data</a></p>
   </main>
   <script>
     window.EMBEDDED_SCHEDULE = {
@@ -143,7 +144,7 @@ kbd { border: 1px solid var(--line); border-radius: 4px; color: var(--muted); fo
 const SOURCE = 'https://thronewatch.app/schedule.json';
 const CENTRAL = 'America/Chicago';
 const ARCH_BOSS_IDS = new Set(['ramux', 'deluzhnoa_asc', 'queen_bellandir_asc', 'giant_cordy_asc', 'tevent_asc']);
-const state = { schedule: null, bosses: [], selected: null, month: new Date() };
+const state = { schedule: null, bosses: [], favorites: [], month: new Date() };
 const $ = (selector) => document.querySelector(selector);
 const FALLBACK = window.EMBEDDED_SCHEDULE;
 function localDateKey(date) { const parts = new Intl.DateTimeFormat('en-CA', { year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(date); return `${parts.find((p) => p.type === 'year').value}-${parts.find((p) => p.type === 'month').value}-${parts.find((p) => p.type === 'day').value}`; }
@@ -156,20 +157,22 @@ function normalizeBossId(name) { const aliases = { 'Ascended Delu': 'deluzhnoa_a
 function rotationAnchor(anchors, key) { return anchors.filter((anchor) => anchor.effectiveDate <= key).sort((a, b) => b.effectiveDate.localeCompare(a.effectiveDate))[0]; }
 function eventsForDate(key) { const { rotationSchedule } = state.schedule; const tier = rotationSchedule.tiers.t4; const anchor = rotationAnchor(rotationSchedule.t4Anchors || [{ effectiveDate: rotationSchedule.t4Start, cycleDay: 1 }], key); const gameDay = dayDifference(anchor.effectiveDate, key); const cycle = tier.cycleDays || 14; const rotationDay = ((anchor.cycleDay - 1 + gameDay) % cycle + cycle) % cycle + 1; const events = []; Object.entries(tier.days[String(rotationDay)] || {}).forEach(([slot, value]) => events.push(...eventEntries(key, tier.slots[slot], value))); (rotationSchedule.dateExtras?.[key] || []).forEach((entry) => events.push(...eventEntries(key, entry.time, entry.items, true))); return events; }
 function eventEntries(gameDate, time, value, predicted = false) { if (!time) return []; return parseItems(value).map((item) => { const name = normalizeBossId(item.name); return { name, gameDate, time, displayName: prettyName(name), guildPvp: item.guildPvp, predicted: predicted && ARCH_BOSS_IDS.has(name) }; }); }
-function isSelected(event) { return state.selected && event.name === state.selected.id; }
+function isFavorite(event) { return state.favorites.includes(event.name); }
+function savedFavorites() { try { return JSON.parse(localStorage.getItem('throne-bosses-favorites') || '[]'); } catch (error) { return []; } }
 function eventDate(event) { return Number(event.time.split(':')[0]) < 3 ? addDays(event.gameDate, 1) : event.gameDate; }
 function centralWallToInstant(date, time) { const [year, month, day] = date.split('-').map(Number); const [hours, minutes] = time.split(':').map(Number); let instant = new Date(Date.UTC(year, month - 1, day, hours, minutes)); const parts = new Intl.DateTimeFormat('en-CA', { timeZone: CENTRAL, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).formatToParts(instant); const actual = Date.UTC(Number(parts.find((part) => part.type === 'year').value), Number(parts.find((part) => part.type === 'month').value) - 1, Number(parts.find((part) => part.type === 'day').value), Number(parts.find((part) => part.type === 'hour').value), Number(parts.find((part) => part.type === 'minute').value)); return new Date(instant.getTime() + Date.UTC(year, month - 1, day, hours, minutes) - actual); }
 function formatLocal(event) { return new Intl.DateTimeFormat(undefined, { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }).format(centralWallToInstant(eventDate(event), event.time)); }
 function localEventDate(event) { return localDateKey(centralWallToInstant(eventDate(event), event.time)); }
 function eventsForLocalDate(key) { return [addDays(key, -1), key, addDays(key, 1)].flatMap((gameDate) => eventsForDate(gameDate)).filter((event) => localEventDate(event) === key); }
-function renderPicker() { const query = $('#boss-search').value.trim().toLowerCase(); const bosses = state.bosses.filter((boss) => boss.name.toLowerCase().includes(query)); $('#boss-picker').innerHTML = bosses.slice(0, 30).map((boss) => `<button class="boss-chip ${state.selected?.id === boss.id ? 'active' : ''}" data-id="${boss.id}" type="button">${boss.name}</button>`).join(''); document.querySelectorAll('.boss-chip').forEach((button) => button.addEventListener('click', () => selectBoss(button.dataset.id))); }
-function selectBoss(id) { state.selected = state.bosses.find((boss) => boss.id === id); $('#selected-name').textContent = state.selected.name; renderPicker(); renderCalendar(); }
+function renderPicker() { const query = $('#boss-search').value.trim().toLowerCase(); const bosses = state.bosses.filter((boss) => boss.name.toLowerCase().includes(query)); $('#boss-picker').innerHTML = bosses.slice(0, 30).map((boss) => { const active = state.favorites.includes(boss.id); return `<button class="boss-chip ${active ? 'active' : ''}" data-id="${boss.id}" type="button" aria-pressed="${active}" title="${active ? 'Remove from favorites' : 'Add to favorites'}">${active ? '★' : '☆'} ${boss.name}</button>`; }).join(''); document.querySelectorAll('.boss-chip').forEach((button) => button.addEventListener('click', () => toggleFavorite(button.dataset.id))); }
+function toggleFavorite(id) { state.favorites = state.favorites.includes(id) ? state.favorites.filter((favorite) => favorite !== id) : [...state.favorites, id]; localStorage.setItem('throne-bosses-favorites', JSON.stringify(state.favorites)); renderPicker(); renderFavorites(); renderCalendar(); }
+function renderFavorites() { const names = state.favorites.map((id) => state.bosses.find((boss) => boss.id === id)?.name).filter(Boolean); $('#selected-name').textContent = names.length ? `${names.length} boss${names.length === 1 ? '' : 'es'}` : 'Choose bosses'; $('#favorite-list').textContent = names.length ? names.join(' · ') : 'Select bosses above to add them here.'; }
 function formatTime(time) { const [hour, minute] = time.split(':').map(Number); return new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: '2-digit' }).format(new Date(2020, 0, 1, hour, minute)); }
-function renderCalendar() { const month = state.month.getMonth(); const year = state.month.getFullYear(); $('#month-label').textContent = new Intl.DateTimeFormat(undefined, { month: 'long', year: 'numeric' }).format(state.month); const first = new Date(year, month, 1); const start = new Date(year, month, 1 - first.getDay()); const today = localDateKey(new Date()); const cells = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'].map((day) => `<div class="weekday" role="columnheader">${day}</div>`); for (let index = 0; index < 42; index += 1) { const date = new Date(start); date.setDate(start.getDate() + index); const key = date.toISOString().slice(0, 10); const events = state.selected ? eventsForLocalDate(key).filter(isSelected).sort((a, b) => centralWallToInstant(eventDate(a), a.time) - centralWallToInstant(eventDate(b), b.time)) : []; cells.push(`<div class="day ${date.getMonth() !== month ? 'muted' : ''} ${key === today ? 'today' : ''}" role="gridcell"><span class="day-number">${date.getDate()}</span>${events.map((event) => `<span class="spawn ${event.guildPvp ? 'guild-pvp' : ''} ${event.predicted ? 'predicted' : ''}">${formatTime(event.time)}${event.guildPvp ? '<small>Guild PvP</small>' : ''}${event.predicted ? '<small>Predicted</small>' : ''}</span>`).join('')}</div>`); } $('#calendar').innerHTML = cells.join(''); updateNextSpawn(); }
-function updateNextSpawn() { if (!state.selected) { $('#next-spawn').textContent = 'Search above to get started.'; return; } const now = new Date(); const candidates = []; for (let offset = -1; offset < 60; offset += 1) { const key = addDays(localDateKey(now), offset); eventsForLocalDate(key).filter(isSelected).forEach((event) => candidates.push({ event, when: centralWallToInstant(eventDate(event), event.time) })); } const next = candidates.sort((a, b) => a.when - b.when).find((candidate) => candidate.when > now); $('#next-spawn').textContent = next ? `Next spawn${next.event.predicted ? ' · Predicted' : ''} · ${formatLocal(next.event)}` : 'No upcoming spawn found.'; }
-function finishLoad() { state.bosses = buildBossList(state.schedule); renderPicker(); selectBoss(state.bosses[0].id); }
-async function load() { try { const response = await fetch(SOURCE); if (!response.ok) throw new Error('Schedule unavailable'); state.schedule = await response.json(); $('#status').textContent = 'Live schedule · 14-day rotation projected'; finishLoad(); } catch (error) { if (!FALLBACK) { $('#status').textContent = 'Could not load schedule'; $('#selected-name').textContent = 'Schedule unavailable'; $('#next-spawn').textContent = 'Check your connection and refresh the page.'; return; } state.schedule = FALLBACK; $('#status').textContent = 'Offline snapshot · 14-day rotation projected'; finishLoad(); } }
-$('#boss-search').addEventListener('input', renderPicker); $('#boss-search').addEventListener('keydown', (event) => { if (event.key === 'Enter' && document.querySelector('.boss-chip')) document.querySelector('.boss-chip').click(); }); $('#today-button').addEventListener('click', () => { state.month = new Date(); renderCalendar(); }); $('#previous-month').addEventListener('click', () => { state.month.setMonth(state.month.getMonth() - 1); renderCalendar(); }); $('#next-month').addEventListener('click', () => { state.month.setMonth(state.month.getMonth() + 1); renderCalendar(); }); document.addEventListener('keydown', (event) => { if (event.key === '/' && document.activeElement !== $('#boss-search')) { event.preventDefault(); $('#boss-search').focus(); } }); load();
+function renderCalendar() { const month = state.month.getMonth(); const year = state.month.getFullYear(); $('#month-label').textContent = new Intl.DateTimeFormat(undefined, { month: 'long', year: 'numeric' }).format(state.month); const first = new Date(year, month, 1); const start = new Date(year, month, 1 - first.getDay()); const today = localDateKey(new Date()); const cells = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'].map((day) => `<div class="weekday" role="columnheader">${day}</div>`); for (let index = 0; index < 42; index += 1) { const date = new Date(start); date.setDate(start.getDate() + index); const key = date.toISOString().slice(0, 10); const events = state.favorites.length ? eventsForLocalDate(key).filter(isFavorite).sort((a, b) => centralWallToInstant(eventDate(a), a.time) - centralWallToInstant(eventDate(b), b.time)) : []; cells.push(`<div class="day ${date.getMonth() !== month ? 'muted' : ''} ${key === today ? 'today' : ''}" role="gridcell"><span class="day-number">${date.getDate()}</span>${events.map((event) => { const favoriteIndex = state.favorites.indexOf(event.name); return `<span class="spawn favorite-${favoriteIndex % 5} ${event.guildPvp ? 'guild-pvp' : ''} ${event.predicted ? 'predicted' : ''}">${formatTime(event.time)}${event.guildPvp ? '<small>Guild PvP</small>' : ''}${event.predicted ? '<small>Predicted</small>' : ''}</span>`; }).join('')}</div>`); } $('#calendar').innerHTML = cells.join(''); updateNextSpawn(); }
+function updateNextSpawn() { if (!state.favorites.length) { $('#next-spawn').textContent = 'Favorite a boss to see its next spawn.'; return; } const now = new Date(); const candidates = []; for (let offset = -1; offset < 60; offset += 1) { const key = addDays(localDateKey(now), offset); eventsForLocalDate(key).filter(isFavorite).forEach((event) => candidates.push({ event, when: centralWallToInstant(eventDate(event), event.time) })); } const next = candidates.sort((a, b) => a.when - b.when).find((candidate) => candidate.when > now); $('#next-spawn').textContent = next ? `Next favorite · ${formatLocal(next.event)}` : 'No upcoming spawn found.'; }
+function finishLoad() { state.bosses = buildBossList(state.schedule); const available = new Set(state.bosses.map((boss) => boss.id)); state.favorites = savedFavorites().filter((id) => available.has(id)); if (!state.favorites.length) state.favorites = state.bosses.slice(0, 1).map((boss) => boss.id); renderPicker(); renderFavorites(); renderCalendar(); }
+async function load() { try { const response = await fetch(SOURCE); if (!response.ok) throw new Error('Schedule unavailable'); state.schedule = await response.json(); finishLoad(); } catch (error) { if (!FALLBACK) { $('#selected-name').textContent = 'Schedule unavailable'; $('#next-spawn').textContent = 'Check your connection and refresh the page.'; return; } state.schedule = FALLBACK; finishLoad(); } }
+$('#boss-search').addEventListener('input', renderPicker); $('#today-button').addEventListener('click', () => { state.month = new Date(); renderCalendar(); }); $('#previous-month').addEventListener('click', () => { state.month.setMonth(state.month.getMonth() - 1); renderCalendar(); }); $('#next-month').addEventListener('click', () => { state.month.setMonth(state.month.getMonth() + 1); renderCalendar(); }); load();
   </script>
 </body>
 </html>
