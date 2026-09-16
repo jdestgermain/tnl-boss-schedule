@@ -4,6 +4,11 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Throne Bosses</title>
+  <meta name="theme-color" content="#f7f8f4">
+  <meta name="description" content="A mobile-friendly Throne and Liberty boss spawn calendar.">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="./icon.svg">
   <style>
 :root { --ink: #18251f; --muted: #6e7b73; --line: #dce5dd; --paper: #f7f8f4; --card: #ffffff; --mint: #c9efdc; --mint-strong: #176b4a; --coral: #ff8f70; --shadow: 0 20px 50px rgba(43, 75, 59, 0.08); }
 * { box-sizing: border-box; }
@@ -35,13 +40,15 @@ kbd { border: 1px solid var(--line); border-radius: 4px; color: var(--muted); fo
 .color-swatch.favorite-0 { background: var(--mint); border: 1px solid #9dd3b7; } .color-swatch.favorite-1 { background: #dce7ff; border: 1px solid #a8bfe9; } .color-swatch.favorite-2 { background: #eadcff; border: 1px solid #c1aee2; } .color-swatch.favorite-3 { background: #d9f0ed; border: 1px solid #9acfc7; } .color-swatch.favorite-4 { background: #f3dfc9; border: 1px solid #d8b58d; }
 .next-spawn { color: var(--mint-strong); font: 500 13px DM Mono, monospace; margin-bottom: 4px; text-align: right; }
 .calendar-section { background: var(--card); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); overflow: hidden; }
+.calendar-section.hide-past .day.past { display: none; }
 .calendar-heading { align-items: center; display: flex; justify-content: center; gap: 18px; padding: 20px; }
 .calendar-heading h2 { font-size: 18px; margin: 0; min-width: 165px; text-align: center; }
 .calendar-note { color: var(--muted); font: 10px DM Mono, monospace; margin: 5px 0 0; text-align: center; }
 .icon-button { background: transparent; border: 1px solid var(--line); border-radius: 6px; color: var(--ink); font-size: 18px; height: 34px; width: 34px; }
 .icon-button:disabled { color: #b0bab2; cursor: not-allowed; opacity: .65; }
 .icon-button:hover { background: var(--mint); border-color: var(--mint); }
-.calendar { display: grid; grid-template-columns: repeat(7, 1fr); border-top: 1px solid var(--line); }
+.calendar-viewport { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.calendar { display: grid; grid-template-columns: repeat(7, minmax(104px, 1fr)); min-width: 728px; border-top: 1px solid var(--line); }
 .weekday { color: var(--muted); font: 500 10px DM Mono, monospace; letter-spacing: .08em; padding: 13px 12px; }
 .day { border-right: 1px solid var(--line); border-top: 1px solid var(--line); min-height: 126px; padding: 11px 12px; }
 .day:nth-child(7n) { border-right: 0; } .day.muted { background: #fbfcfa; color: #b0bab2; } .day.today { background: #f0faf3; } .day.past { position: relative; } .day.past::after { background: repeating-linear-gradient(135deg, transparent 0, transparent 9px, rgba(110, 123, 115, .08) 9px, rgba(110, 123, 115, .08) 10px); content: ''; inset: 0; pointer-events: none; position: absolute; } .day.past .spawn { opacity: .65; }
@@ -56,8 +63,9 @@ kbd { border: 1px solid var(--line); border-radius: 4px; color: var(--muted); fo
 .spawn + .spawn { margin-top: 4px; } .spawn.guild-pvp { background: #ffe0d5; border-left: 3px solid var(--coral); } .spawn.predicted { background: #fff1c9; border-left: 3px dashed #c38a19; } .spawn.favorite-1 { background: #dce7ff; } .spawn.favorite-2 { background: #eadcff; } .spawn.favorite-3 { background: #d9f0ed; } .spawn.favorite-4 { background: #f3dfc9; } .spawn small { display: block; font: 500 9px Manrope, sans-serif; margin-top: 3px; }
 .footnote { color: var(--muted); font: 11px DM Mono, monospace; margin: 18px 0 0; text-align: right; }
 .footnote a { color: var(--mint-strong); } .legend.predicted { color: #a36d00; }
+.mobile-only { display: none; }
 .sr-only { clip: rect(0, 0, 0, 0); clip-path: inset(50%); height: 1px; overflow: hidden; position: absolute; white-space: nowrap; width: 1px; }
-@media (max-width: 700px) { .app-shell { padding-top: 34px; width: min(100% - 24px, 560px); } .masthead, .selected-boss { align-items: start; flex-direction: column; } .status { align-self: start; } .controls { margin-top: 30px; } .selected-boss { gap: 12px; margin-top: 38px; } .next-spawn { text-align: left; } .day { min-height: 96px; padding: 8px 5px; } .weekday { padding: 10px 5px; font-size: 9px; } .spawn { font-size: 9px; padding: 5px 3px; } }
+@media (max-width: 700px) { .app-shell { padding-top: 34px; width: min(100% - 24px, 560px); } .masthead, .selected-boss { align-items: start; flex-direction: column; } .status { align-self: start; } .controls { margin-top: 30px; } .selected-boss { gap: 12px; margin-top: 38px; } .next-spawn { text-align: left; } .boss-picker { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); max-height: 176px; overflow-y: auto; padding: 2px 2px 6px; } .boss-chip { border-radius: 6px; justify-content: flex-start; min-width: 0; overflow: hidden; padding: 9px 8px; text-align: left; } .boss-chip > span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .mobile-only { display: inline-block; } .calendar-heading { flex-wrap: wrap; gap: 10px; padding: 16px 12px; } .calendar-heading > div { flex: 1 1 100%; order: -1; } .calendar-heading h2 { min-width: 0; } .calendar-heading .today-button { margin-left: auto; } .calendar-viewport { overflow-x: hidden; } .calendar { display: block; min-width: 0; } .weekday, .day.empty, .day:not(:has(.spawn)) { display: none; } .day { align-items: start; display: grid; gap: 0 10px; grid-template-columns: 42px 1fr; min-height: 0; padding: 13px 12px; } .day-header { grid-column: 1; grid-row: 1; } .spawn { grid-column: 2; margin-top: 0; } .spawn + .spawn { margin-top: 5px; } .day.today .day-number { height: 28px; width: 28px; } .spawn { font-size: 10px; padding: 7px; } .copy-button { opacity: 1; } .footnote { text-align: left; } }
   </style>
 </head>
 <body>
@@ -88,7 +96,7 @@ kbd { border: 1px solid var(--line); border-radius: 4px; color: var(--muted); fo
       <p class="next-spawn" id="next-spawn">Search above to get started.</p>
     </section>
 
-    <section class="calendar-section">
+    <section class="calendar-section hide-past">
       <div class="calendar-heading">
         <button class="icon-button" id="previous-month" type="button" aria-label="Previous month">←</button>
         <div>
@@ -96,9 +104,12 @@ kbd { border: 1px solid var(--line); border-radius: 4px; color: var(--muted); fo
           <p class="calendar-note">14-day rotation projected forward</p>
         </div>
         <button class="today-button" id="today-button" type="button">Today</button>
+        <button class="today-button mobile-only" id="toggle-past" type="button" aria-pressed="false">Show past</button>
         <button class="icon-button" id="next-month" type="button" aria-label="Next month">→</button>
       </div>
-      <div class="calendar" id="calendar" role="grid" aria-label="Boss spawn calendar"></div>
+      <div class="calendar-viewport" tabindex="0" aria-label="Scrollable calendar">
+        <div class="calendar" id="calendar" role="grid" aria-label="Boss spawn calendar"></div>
+      </div>
     </section>
 
     <p class="footnote">Local time · 14-day rotation · <span class="legend predicted">Predicted Arch</span> · <a href="https://thronewatch.app/" target="_blank" rel="noreferrer">Throne Watch data</a></p>
@@ -188,7 +199,10 @@ function renderCalendar() { const month = state.month.getMonth(); const year = s
 function updateNextSpawn() { if (!state.favorites.length) { $('#next-spawn').textContent = 'Favorite a boss to see its next spawn.'; return; } const now = new Date(); const candidates = []; for (let offset = -1; offset < 60; offset += 1) { const key = addDays(localDateKey(now), offset); eventsForLocalDate(key).filter(isFavorite).forEach((event) => candidates.push({ event, when: centralWallToInstant(eventDate(event), event.time) })); } const next = candidates.sort((a, b) => a.when - b.when).find((candidate) => candidate.when > now); $('#next-spawn').textContent = next ? `Next favorite · ${formatLocal(next.event)}` : 'No upcoming spawn found.'; }
 function finishLoad() { state.bosses = buildBossList(state.schedule); const available = new Set(state.bosses.map((boss) => boss.id)); state.favorites = savedFavorites().filter((id) => available.has(id)); if (!state.favorites.length) state.favorites = state.bosses.slice(0, 1).map((boss) => boss.id); renderPicker(); renderFavorites(); renderCalendar(); }
 async function load() { try { const response = await fetch(SOURCE); if (!response.ok) throw new Error('Schedule unavailable'); state.schedule = await response.json(); finishLoad(); } catch (error) { if (!FALLBACK) { $('#selected-name').textContent = 'Schedule unavailable'; $('#next-spawn').textContent = 'Check your connection and refresh the page.'; return; } state.schedule = FALLBACK; finishLoad(); } }
-$('#boss-search').addEventListener('input', renderPicker); $('#today-button').addEventListener('click', () => { state.month = new Date(); renderCalendar(); }); $('#previous-month').addEventListener('click', () => { const currentMonth = new Date(); if (state.month.getFullYear() === currentMonth.getFullYear() && state.month.getMonth() === currentMonth.getMonth()) return; state.month.setMonth(state.month.getMonth() - 1); renderCalendar(); }); $('#next-month').addEventListener('click', () => { state.month.setMonth(state.month.getMonth() + 1); renderCalendar(); }); load();
+$('#boss-search').addEventListener('input', renderPicker); $('#today-button').addEventListener('click', () => { state.month = new Date(); renderCalendar(); }); $('#toggle-past').addEventListener('click', () => { const section = document.querySelector('.calendar-section'); const showing = section.classList.toggle('hide-past') === false; $('#toggle-past').textContent = showing ? 'Hide past' : 'Show past'; $('#toggle-past').setAttribute('aria-pressed', String(showing)); }); $('#previous-month').addEventListener('click', () => { const currentMonth = new Date(); if (state.month.getFullYear() === currentMonth.getFullYear() && state.month.getMonth() === currentMonth.getMonth()) return; state.month.setMonth(state.month.getMonth() - 1); renderCalendar(); }); $('#next-month').addEventListener('click', () => { state.month.setMonth(state.month.getMonth() + 1); renderCalendar(); }); load();
+  </script>
+  <script>
+    if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js'));
   </script>
 </body>
 </html>
