@@ -247,7 +247,7 @@ function formatTime(time) { const [hour, minute] = time.split(':').map(Number); 
 function discordTimestamp(event) { return Math.floor(centralWallToInstant(eventDate(event), event.time).getTime() / 1000); }
 function copyText(text) { if (navigator.clipboard?.writeText) return navigator.clipboard.writeText(text); const area = document.createElement('textarea'); area.value = text; document.body.appendChild(area); area.select(); document.execCommand('copy'); area.remove(); return Promise.resolve(); }
 function copyBossLabel(event) { return `\`${event.displayName} (${event.guildPvp ? 'Guild: Field' : 'Peace'})\``; }
-function copyGroupLine(timestamp, events) { return `<t:${timestamp}:t> | ${events.map(copyBossLabel).join(' | ')}`; }
+function copyGroupLine(timestamp, events) { return `<t:${timestamp}:t> (<t:${timestamp}:R>) | ${events.map(copyBossLabel).join(' | ')}`; }
 function copyLine(event) { return copyGroupLine(discordTimestamp(event), [event]); }
 function copyEvent(event) { return copyText(copyLine(event)); }
 function copyDayEvents(key) { const events = eventsForLocalDate(key); const overnightEvents = eventsForLocalDate(addDays(key, 1)).filter((event) => Number(event.time.split(':')[0]) < 3); return [...events, ...overnightEvents]; }
