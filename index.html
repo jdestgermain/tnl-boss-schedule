@@ -207,6 +207,7 @@ body.editor-mode .calendar-section, body.editor-mode .boss-picker, body.editor-m
 const SOURCE = 'https://thronewatch.app/schedule.json';
 const CENTRAL = 'America/Chicago';
 const ARCH_BOSS_IDS = new Set(['ramux', 'deluzhnoa_asc', 'queen_bellandir_asc', 'giant_cordy_asc', 'tevent_asc']);
+const GUILD_FIELD_BOSS_IDS = new Set(['exodus', 'grimturg', 'porfos', 'thuban']);
 const OVERRIDE_BOSS_IDS = { Grimturg: 'grimturg', Exodus: 'exodus' };
 const DEFAULT_ROTATION_OVERRIDES = {
   10: {
@@ -243,7 +244,7 @@ function renderFavorites() { const favorites = state.favorites.map((id, index) =
 function formatTime(time) { const [hour, minute] = time.split(':').map(Number); return new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: '2-digit' }).format(new Date(2020, 0, 1, hour, minute)); }
 function discordTimestamp(event) { return Math.floor(centralWallToInstant(eventDate(event), event.time).getTime() / 1000); }
 function copyText(text) { if (navigator.clipboard?.writeText) return navigator.clipboard.writeText(text); const area = document.createElement('textarea'); area.value = text; document.body.appendChild(area); area.select(); document.execCommand('copy'); area.remove(); return Promise.resolve(); }
-function copyBossLabel(event) { return `\`${event.displayName} (${event.guildPvp ? 'Guild: Field' : 'Peace'})\``; }
+function copyBossLabel(event) { const guildType = GUILD_FIELD_BOSS_IDS.has(event.name) ? 'Field' : 'Portal'; return `\`${event.displayName} (${event.guildPvp ? `Guild: ${guildType}` : 'Peace'})\``; }
 function copyGroupLine(timestamp, events) { return `<t:${timestamp}:t> (<t:${timestamp}:R>) | ${events.map(copyBossLabel).join(' | ')}`; }
 function copyLine(event) { return copyGroupLine(discordTimestamp(event), [event]); }
 function copyEvent(event) { return copyText(copyLine(event)); }
