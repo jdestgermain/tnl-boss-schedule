@@ -9,6 +9,10 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
+  # GitHub cron uses UTC; 12:00 UTC is approximately 7:00 AM Central.
+  schedule:
+    - cron: "0 12 * * *"
+
 # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
   contents: read
@@ -31,6 +35,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Refresh schedule snapshot
+        shell: bash
+        run: curl --fail --location --retry 3 --silent --show-error "https://thronewatch.app/schedule.json" --output schedule.json
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact

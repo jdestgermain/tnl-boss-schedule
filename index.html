@@ -20,6 +20,8 @@ button, input { font: inherit; } button { cursor: pointer; }
 h1, h2, p { margin-top: 0; } h1 { font-size: clamp(36px, 6vw, 72px); letter-spacing: -.06em; line-height: .98; margin-bottom: 16px; }
 .lede { color: var(--muted); font-size: 16px; margin-bottom: 0; }
 .status { background: var(--card); border: 1px solid var(--line); border-radius: 999px; color: var(--muted); font: 12px DM Mono, monospace; padding: 11px 15px; white-space: nowrap; }
+.status.live { border-color: #9dd3b7; color: var(--mint-strong); }
+.status.fallback { background: #fff7df; border-color: #e5c873; color: #8a6500; }
 .controls { display: flex; gap: 10px; margin: 42px 0 18px; }
 .search-wrap { align-items: center; background: var(--card); border: 1px solid var(--line); border-radius: 8px; display: flex; flex: 1; gap: 10px; padding: 0 14px; box-shadow: var(--shadow); }
 .search-icon { color: var(--mint-strong); font-size: 25px; line-height: 0; transform: translateY(-2px); }
@@ -99,6 +101,7 @@ body.editor-mode .calendar-section, body.editor-mode .boss-picker, body.editor-m
         <p class="eyebrow">THRONE & LIBERTY</p>
         <h1>Boss calendar</h1>
       </div>
+      <p class="status fallback" id="data-status" role="status">Loading schedule...</p>
     </header>
 
     <section class="controls" aria-label="Boss controls">
@@ -204,7 +207,7 @@ body.editor-mode .calendar-section, body.editor-mode .boss-picker, body.editor-m
     };
   </script>
   <script>
-const SOURCE = 'https://thronewatch.app/schedule.json';
+const SOURCE = './schedule.json';
 const CENTRAL = 'America/Chicago';
 const ARCH_BOSS_IDS = new Set(['ramux', 'deluzhnoa_asc', 'queen_bellandir_asc', 'giant_cordy_asc', 'tevent_asc']);
 const GUILD_FIELD_BOSS_IDS = new Set(['exodus', 'grimturg', 'porfos', 'thuban']);
@@ -266,10 +269,11 @@ function registerEditorBosses(overrides) { Object.values(overrides).flatMap((day
 function applyEditorOverrides(overrides, save = true) { registerEditorBosses(overrides); ROTATION_OVERRIDES = overrides; ROTATION_OVERRIDE_VALUES = Object.values(ROTATION_OVERRIDES).flatMap((day) => Object.values(day)); if (save) localStorage.setItem('throne-bosses-rotation-overrides', JSON.stringify(overrides)); state.bosses = buildBossList(state.schedule); renderPicker(); renderFavorites(); renderCalendar(); renderEditor(); $('#editor-status').textContent = 'Applied to this calendar and saved in this browser.'; }
 function loadEditorOverrides() { try { const saved = JSON.parse(localStorage.getItem('throne-bosses-rotation-overrides') || 'null'); if (saved && typeof saved === 'object') { registerEditorBosses(saved); ROTATION_OVERRIDES = saved; ROTATION_OVERRIDE_VALUES = Object.values(saved).flatMap((day) => Object.values(day)); } } catch (error) { localStorage.removeItem('throne-bosses-rotation-overrides'); } }
 function finishLoad() { loadEditorOverrides(); state.bosses = buildBossList(state.schedule); const available = new Set(state.bosses.map((boss) => boss.id)); state.favorites = savedFavorites().filter((id) => available.has(id)); if (!state.favorites.length) state.favorites = state.bosses.slice(0, 1).map((boss) => boss.id); renderPicker(); renderFavorites(); renderCalendar(); renderEditor(); }
+function setDataStatus(kind, message) { const status = $('#data-status'); if (!status) return; status.className = `status ${kind}`; status.textContent = message; status.title = kind === 'live' ? 'Loaded from Throne Watch schedule.json.' : 'Using the embedded schedule bundled with this site.'; }
 const editorMode = new URLSearchParams(location.search).get('editor') === '1';
 document.body.classList.toggle('editor-mode', editorMode);
 function withOverrideBosses(data) { return { ...data, _bossIds: { ...OVERRIDE_BOSS_IDS, ...(data._bossIds || {}) } }; }
-async function load() { try { const response = await fetch(SOURCE); if (!response.ok) throw new Error('Schedule unavailable'); state.schedule = withOverrideBosses(await response.json()); finishLoad(); } catch (error) { if (!FALLBACK) { $('#selected-name').textContent = 'Schedule unavailable'; $('#next-spawn').textContent = 'Check your connection and refresh the page.'; return; } state.schedule = withOverrideBosses(FALLBACK); finishLoad(); } }
+async function load() { try { const response = await fetch(`${SOURCE}?v=${Date.now()}`, { cache: 'no-store' }); if (!response.ok) throw new Error('Schedule unavailable'); state.schedule = withOverrideBosses(await response.json()); finishLoad(); setDataStatus('live', `Published snapshot · checked ${new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: '2-digit' }).format(new Date())}`); } catch (error) { if (!FALLBACK) { setDataStatus('fallback', 'Schedule unavailable'); $('#selected-name').textContent = 'Schedule unavailable'; $('#next-spawn').textContent = 'Check your connection and refresh the page.'; return; } state.schedule = withOverrideBosses(FALLBACK); finishLoad(); setDataStatus('fallback', 'Embedded fallback · may be stale'); } }
 $('#boss-search').addEventListener('input', renderPicker); $('#today-button').addEventListener('click', () => { state.month = new Date(); renderCalendar(); }); $('#toggle-past').addEventListener('click', () => { const section = document.querySelector('.calendar-section'); const showing = section.classList.toggle('hide-past') === false; $('#toggle-past').textContent = showing ? 'Hide past' : 'Show past'; $('#toggle-past').setAttribute('aria-pressed', String(showing)); }); $('#previous-month').addEventListener('click', () => { const currentMonth = new Date(); if (state.month.getFullYear() === currentMonth.getFullYear() && state.month.getMonth() === currentMonth.getMonth()) return; state.month.setMonth(state.month.getMonth() - 1); renderCalendar(); }); $('#next-month').addEventListener('click', () => { state.month.setMonth(state.month.getMonth() + 1); renderCalendar(); }); load();
 if (editorMode) { $('#apply-editor').addEventListener('click', () => applyEditorOverrides(editorOverridesFromInputs())); $('#copy-editor').addEventListener('click', () => copyText($('#editor-config').value).then(() => { $('#editor-status').textContent = 'Configuration copied to the clipboard.'; })); $('#reset-editor').addEventListener('click', () => { localStorage.removeItem('throne-bosses-rotation-overrides'); ROTATION_OVERRIDES = JSON.parse(JSON.stringify(DEFAULT_ROTATION_OVERRIDES)); ROTATION_OVERRIDE_VALUES = Object.values(ROTATION_OVERRIDES).flatMap((day) => Object.values(day)); renderEditor(); $('#editor-status').textContent = 'Draft reset. Apply changes to use the source overrides again.'; }); }
   </script>

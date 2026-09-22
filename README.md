@@ -5,6 +5,8 @@
 
 The site is deployed by `.github/workflows/static.yml` to GitHub Pages. Once the Pages deployment is live, open the site in a browser and use the browser's install or "Add to home screen" action. The app shell and embedded schedule remain available offline; live schedule refreshes when a connection is available.
 
+The Pages workflow fetches `schedule.json` server-side once daily at approximately 7:00 AM Central and publishes it as a same-origin file. This avoids Throne Watch's browser CORS restriction. GitHub Actions cron uses UTC, so the scheduled time is an approximation around daylight-saving changes. Local development without a downloaded `schedule.json` intentionally uses the embedded fallback.
+
 ## Recurring schedule overrides
 
 Recurring corrections live in `ROTATION_OVERRIDES` in `index.html`. Keys are rotation-day numbers (`1` through `14`), and each nested key is the schedule time in Central time using 24-hour `HH:MM` format:
