@@ -213,6 +213,14 @@ const ARCH_BOSS_IDS = new Set(['ramux', 'deluzhnoa_asc', 'queen_bellandir_asc', 
 const GUILD_FIELD_BOSS_IDS = new Set(['exodus', 'grimturg', 'porfos', 'thuban']);
 const OVERRIDE_BOSS_IDS = { Grimturg: 'grimturg', Exodus: 'exodus' };
 const DEFAULT_ROTATION_OVERRIDES = {
+  2: {
+    '19:00': 'Ascended Tevent',
+    '20:30': 'Ascended Manticus !gpvp',
+    '22:00': 'Ascended Manticus | Ascended Grand Aelon | Ascended Cordy !gpvp | Ascended Tevent',
+    '23:00': 'Thuban | Ascended Ahzreil',
+    '23:30': 'Thuban !gpvp',
+    '01:00': 'Porfos | Ascended Chernobog'
+  },
   10: {
     '22:00': 'Ascended Manticus | Exodus | Ramux'
   },
@@ -236,7 +244,7 @@ function buildBossList(data) { const tier = data.rotationSchedule.tiers.t4; cons
 function normalizeBossId(name) { const aliases = { 'Ascended Delu': 'deluzhnoa_asc', 'Ascended Queen Bell': 'queen_bellandir_asc' }; if (aliases[name]) return aliases[name]; const entry = Object.entries(state.schedule._bossIds || {}).find(([label]) => label.toLowerCase() === name.toLowerCase()); return entry ? entry[1] : name; }
 function rotationAnchor(anchors, key) { return anchors.filter((anchor) => anchor.effectiveDate <= key).sort((a, b) => b.effectiveDate.localeCompare(a.effectiveDate))[0]; }
 function eventsForDate(key) { const { rotationSchedule } = state.schedule; const tier = rotationSchedule.tiers.t4; const anchor = rotationAnchor(rotationSchedule.t4Anchors || [{ effectiveDate: rotationSchedule.t4Start, cycleDay: 1 }], key); const gameDay = dayDifference(anchor.effectiveDate, key); const cycle = tier.cycleDays || 14; const rotationDay = ((anchor.cycleDay - 1 + gameDay) % cycle + cycle) % cycle + 1; const events = []; Object.entries(tier.days[String(rotationDay)] || {}).forEach(([slot, value]) => events.push(...eventEntries(key, tier.slots[slot], value))); (rotationSchedule.dateExtras?.[key] || []).forEach((entry) => events.push(...eventEntries(key, entry.time, entry.items, true))); return applyScheduleOverrides(events, rotationDay); }
-function applyScheduleOverrides(events, rotationDay) { const overrides = ROTATION_OVERRIDES[rotationDay] || {}; const result = []; const handled = new Set(); events.forEach((event) => { const groupKey = `${event.gameDate}|${event.time}`; if (handled.has(groupKey)) return; const override = overrides[event.time]; if (!override) { result.push(event); return; } const replacement = events.find((candidate) => candidate.gameDate === event.gameDate && candidate.time === event.time); result.push(...eventEntries(replacement.gameDate, replacement.time, override)); handled.add(groupKey); }); return result; }
+function applyScheduleOverrides(events, rotationDay) { const overrides = ROTATION_OVERRIDES[rotationDay] || {}; const result = []; const handled = new Set(); events.forEach((event) => { const groupKey = `${event.gameDate}|${event.time}`; if (handled.has(groupKey)) return; const override = overrides[event.time]; if (!override) { result.push(event); return; } result.push(...eventEntries(event.gameDate, event.time, override)); handled.add(groupKey); }); const gameDate = events[0]?.gameDate; if (gameDate) Object.entries(overrides).forEach(([time, value]) => { const groupKey = `${gameDate}|${time}`; if (!handled.has(groupKey) && !events.some((event) => event.time === time)) result.push(...eventEntries(gameDate, time, value)); }); return result; }
 function eventDisplayName(id) { const entry = Object.entries(state.schedule._bossIds || {}).find(([, bossId]) => bossId === id); return entry ? entry[0] : prettyName(id); }
 function eventEntries(gameDate, time, value, predicted = false) { if (!time) return []; return parseItems(value).map((item) => { const name = normalizeBossId(item.name); return { name, gameDate, time, displayName: eventDisplayName(name), guildPvp: item.guildPvp, predicted: predicted && ARCH_BOSS_IDS.has(name) }; }); }
 function isFavorite(event) { return state.favorites.includes(event.name); }
