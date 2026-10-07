@@ -214,37 +214,41 @@ const GUILD_FIELD_BOSS_IDS = new Set(['exodus', 'grimturg', 'porfos', 'thuban', 
 const OVERRIDE_BOSS_IDS = { Grimturg: 'grimturg', Exodus: 'exodus' };
 const DEFAULT_ROTATION_OVERRIDES = {
   2: {
-    '19:00': 'Ascended Tevent',
-    '20:30': 'Ascended Manticus !gpvp',
-    '22:00': 'Ascended Manticus | Ascended Grand Aelon | Ascended Cordy !gpvp | Ascended Tevent',
-    '23:00': 'Thuban | Ascended Ahzreil',
-    '23:30': 'Thuban !gpvp',
-    '01:00': 'Porfos | Ascended Chernobog'
+    '19:00': 'tevent_asc',
+    '20:30': 'manticus_asc !gpvp',
+    '22:00': 'manticus_asc | grand_aelon_asc | giant_cordy_asc !gpvp | tevent_asc',
+    '23:00': 'thuban | ahzreil_asc',
+    '23:30': 'thuban !gpvp',
+    '01:00': 'porfos | chernobog_asc'
   },
   5: {
-    '23:00': 'Ascended Daigon | Ascended Cornelius'
+    '23:00': 'daigon_asc | cornelius_asc'
   },
   9: {
-    '20:30': 'Ascended Pakilo Naru !gpvp',
-    '22:00': 'Ascended Pakilo Naru | Ascended Ahzreil | Ascended Cordy'
+    '20:30': 'pakilo_naru_asc !gpvp',
+    '22:00': 'pakilo_naru_asc | ahzreil_asc | giant_cordy_asc'
   },
   12: {
-    '20:00': 'Ascended Daigon | Ascended Excavator-9',
-    '20:30': 'Ascended Daigon !gpvp'
+    '20:00': 'daigon_asc | excavator9_asc',
+    '20:30': 'daigon_asc !gpvp'
   },
   11: {
-    '20:00': 'Ascended Leviathan | Grimturg',
-    '23:00': 'Porfos | Exodus'
+    '20:00': 'leviathan_asc | grimturg',
+    '23:00': 'porfos | exodus'
   },
   10: {
-    '22:00': 'Ascended Manticus | Exodus | Ramux | Ascended Cordy !gpvp'
+    '22:00': 'manticus_asc | exodus | ramux | giant_cordy_asc !gpvp'
   },
   13: {
-    '13:00': 'Thuban | Ascended Morokai',
-    '19:00': 'Vegamor !gpvp',
-    '20:30': 'Ascended Pakilo Naru !gpvp',
-    '22:00': 'Vegamor | Ascended Pakilo Naru | Ascended Adentus',
-    '23:00': 'Porfos | Ascended Chernobog'
+    '13:00': 'thuban | morokai_asc',
+    '19:00': 'vegamor !gpvp',
+    '20:30': 'pakilo_naru_asc !gpvp',
+    '22:00': 'vegamor | pakilo_naru_asc | adentus_asc',
+    '23:00': 'porfos | chernobog_asc'
+  },
+  14: {
+    '22:00': 'pakilo_naru_asc | kowazan_asc | ramux | queen_bellandir_asc !gpvp',
+    '01:00': 'manticus_asc | grand_aelon_asc'
   }
 };
 let ROTATION_OVERRIDES = JSON.parse(JSON.stringify(DEFAULT_ROTATION_OVERRIDES));
@@ -295,7 +299,7 @@ function editorDisplay(value) { return parseItems(value).map((item) => `${eventD
 function editorOverridesFromInputs() { const overrides = {}; document.querySelectorAll('.editor-input').forEach((input) => { const value = input.value.trim(); if (!value) return; const day = input.dataset.day; if (!overrides[day]) overrides[day] = {}; overrides[day][input.dataset.time] = value; }); return overrides; }
 function editorConfig(overrides) { return `const ROTATION_OVERRIDES = ${JSON.stringify(overrides, null, 2)};`; }
 function renderEditor() { if (!document.body.classList.contains('editor-mode')) return; const rows = []; for (let day = 1; day <= 14; day += 1) editorTimes(day).forEach((time) => { const source = editorSourceValue(day, time); const override = ROTATION_OVERRIDES[day]?.[time] || ''; rows.push(`<div class="editor-row"><div class="editor-day">DAY ${day}<br>${time}</div><div class="editor-slot"><span class="editor-label">Source schedule</span><div class="editor-source">${source ? editorEscape(editorDisplay(source)) : '<span class="editor-empty">No event</span>'}</div></div><div class="editor-slot"><label class="editor-label" for="override-${day}-${time.replace(':', '')}">Recurring override</label><textarea class="editor-input" id="override-${day}-${time.replace(':', '')}" data-day="${day}" data-time="${time}" rows="2" placeholder="Leave blank for source schedule" spellcheck="false">${editorEscape(override)}</textarea></div></div>`); }); $('#editor-table').innerHTML = rows.join(''); $('#editor-config').value = editorConfig(ROTATION_OVERRIDES); }
-function registerEditorBosses(overrides) { Object.values(overrides).flatMap((day) => Object.values(day)).flatMap((value) => parseItems(value)).forEach((item) => { if (Object.keys(state.schedule._bossIds).some((label) => label.toLowerCase() === item.name.toLowerCase())) return; const id = item.name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, ''); state.schedule._bossIds[item.name] = id; }); }
+function registerEditorBosses(overrides) { const entries = Object.entries(state.schedule._bossIds); const knownIds = new Set(entries.map(([, id]) => id.toLowerCase())); Object.values(overrides).flatMap((day) => Object.values(day)).flatMap((value) => parseItems(value)).forEach((item) => { const name = item.name.toLowerCase(); if (knownIds.has(name) || entries.some(([label]) => label.toLowerCase() === name)) return; const id = item.name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, ''); state.schedule._bossIds[prettyName(id)] = id; knownIds.add(id); }); }
 function applyEditorOverrides(overrides, save = true) { registerEditorBosses(overrides); ROTATION_OVERRIDES = overrides; ROTATION_OVERRIDE_VALUES = Object.values(ROTATION_OVERRIDES).flatMap((day) => Object.values(day)); if (save) localStorage.setItem('throne-bosses-rotation-overrides', JSON.stringify(overrides)); state.bosses = buildBossList(state.schedule); renderPicker(); renderFavorites(); renderCalendar(); renderEditor(); $('#editor-status').textContent = 'Applied to this calendar and saved in this browser.'; }
 function loadEditorOverrides() { try { const saved = JSON.parse(localStorage.getItem('throne-bosses-rotation-overrides') || 'null'); if (saved && typeof saved === 'object') { registerEditorBosses(saved); ROTATION_OVERRIDES = saved; ROTATION_OVERRIDE_VALUES = Object.values(saved).flatMap((day) => Object.values(day)); } } catch (error) { localStorage.removeItem('throne-bosses-rotation-overrides'); } }
 function finishLoad() { loadEditorOverrides(); state.bosses = buildBossList(state.schedule); const available = new Set(state.bosses.map((boss) => boss.id)); state.favorites = savedFavorites().filter((id) => available.has(id)); if (!state.favorites.length) state.favorites = state.bosses.slice(0, 1).map((boss) => boss.id); renderPicker(); renderFavorites(); renderCalendar(); renderEditor(); }
