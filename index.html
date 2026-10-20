@@ -168,8 +168,8 @@ body.editor-mode .calendar-section, body.editor-mode .boss-picker, body.editor-m
         Kowazan: 'kowazan', 'Ascended Kowazan': 'kowazan_asc', Leviathan: 'leviathan', 'Ascended Leviathan': 'leviathan_asc', Malakar: 'malakar', 'Ascended Malakar': 'malakar_asc',
         Manticus: 'manticus', 'Ascended Manticus': 'manticus_asc', Minezerok: 'minezerok', 'Ascended Minezerok': 'minezerok_asc', Morokai: 'morokai', 'Ascended Morokai': 'morokai_asc',
         Nirma: 'nirma', 'Ascended Nirma': 'nirma_asc', 'Pakilo Naru': 'pakilo_naru', 'Ascended Pakilo Naru': 'pakilo_naru_asc', Porfos: 'porfos', Talus: 'talus', 'Ascended Talus': 'talus_asc',
-        Tevent: 'tevent', 'Ascended Tevent': 'tevent_asc', Thuban: 'thuban', Aelon: 'grand_aelon', 'Ascended Aelon': 'grand_aelon_asc', 'Giant Cordy': 'giant_cordy', 'Ascended Giant Cordy': 'giant_cordy_asc',
-        'Queen Bell': 'queen_bellandir', 'Ascended Queen Bell': 'queen_bellandir_asc', Ramux: 'ramux'
+        Tevent: 'tevent', 'Ascended Tevent': 'tevent_asc', Thuban: 'thuban', Aelon: 'grand_aelon', 'Ascended Grand Aelon': 'grand_aelon_asc', 'Giant Cordy': 'giant_cordy', 'Ascended Giant Cordy': 'giant_cordy_asc',
+        'Queen Bell': 'queen_bellandir', 'Ascended Queen Bellandir': 'queen_bellandir_asc', Ramux: 'ramux'
       },
       rotationSchedule: {
         t4Start: '2026-06-25',
@@ -202,6 +202,18 @@ body.editor-mode .calendar-section, body.editor-mode .boss-picker, body.editor-m
           '2026-09-13': [{ time: '20:00', items: 'Siege !gpvp' }], '2026-09-15': [{ time: '19:00', items: 'Ascended Delu' }, { time: '22:00', items: 'Ascended Delu | Ascended Queen Bell !gpvp' }],
           '2026-09-16': [{ time: '19:00', items: 'Ramux !gpvp | Ascended Tevent' }, { time: '22:00', items: 'Ramux' }], '2026-09-18': [{ time: '19:00', items: 'Ascended Cordy' }, { time: '22:00', items: 'Ascended Cordy | Ascended Tevent !gpvp' }],
           '2026-09-19': [{ time: '19:00', items: 'Ramux | Ascended Delu !gpvp' }, { time: '22:00', items: 'Ramux' }]
+        },
+        dateOverrides: {
+          '2026-10-20': [
+            { time: '13:00', items: 'thuban | grand_aelon_asc' },
+            { time: '16:00', items: 'daigon_asc | cornelius_asc' },
+            { time: '19:00', items: 'vegamor' },
+            { time: '20:30', items: 'pakilo_naru_asc !gpvp' },
+            { time: '22:00', items: 'vegamor !gpvp | pakilo_naru_asc | ahzreil_asc | queen_bellandir_asc' },
+            { time: '23:00', items: 'porfos | malakar_asc' },
+            { time: '23:30', items: 'porfos !gpvp' },
+            { time: '01:00', items: 'manticus_asc | ahzreil_asc' }
+          ]
         }
       }
     };
@@ -209,7 +221,7 @@ body.editor-mode .calendar-section, body.editor-mode .boss-picker, body.editor-m
   <script>
 const SOURCE = './schedule.json';
 const CENTRAL = 'America/Chicago';
-const ARCH_BOSS_IDS = new Set(['ramux', 'deluzhnoa_asc', 'queen_bellandir_asc', 'giant_cordy_asc', 'tevent_asc']);
+const ARCH_BOSS_IDS = new Set(['ramux', 'deluzhnoa_asc', 'queen_bellandir_asc', 'giant_cordy_asc', 'tevent_asc', 'vegamor', 'vegamor_asc']);
 const GUILD_FIELD_BOSS_IDS = new Set(['exodus', 'grimturg', 'porfos', 'thuban', 'vegamor', 'vegamor_asc']);
 const OVERRIDE_BOSS_IDS = { Grimturg: 'grimturg', Exodus: 'exodus' };
 const DEFAULT_ROTATION_OVERRIDES = {
@@ -247,7 +259,7 @@ const DEFAULT_ROTATION_OVERRIDES = {
     '22:00': 'pakilo_naru_asc | ahzreil_asc | giant_cordy_asc | tevent_asc !gpvp'
   },
   12: {
-    '20:00': 'daigon_asc | excavator9_asc',
+    '20:00': 'daigon_asc | kowazan_asc',
     '20:30': 'daigon_asc !gpvp'
   },
   11: {
@@ -281,11 +293,11 @@ function dayDifference(from, to) { return Math.round((new Date(`${to}T12:00:00Z`
 function prettyName(value) { return value.replace(/_asc\b/g, ' Ascended').replace(/_/g, ' ').replace(/\b\w/g, (letter) => letter.toUpperCase()); }
 function parseItems(value) { const text = Array.isArray(value) ? value[0] : value; return String(text).split('|').map((item) => item.trim()).filter(Boolean).map((item) => ({ name: item.replace(/\s+!(gpvp|dpvp)$/, ''), guildPvp: /\s!gpvp$/.test(item) })); }
 function buildBossList(data) { const tier = data.rotationSchedule.tiers.t4; const sources = Object.values(tier.days).flatMap((day) => Object.values(day)); sources.push(...Object.values(data.rotationSchedule.dateExtras || {}).flatMap((entries) => entries.map((entry) => entry.items))); sources.push(...ROTATION_OVERRIDE_VALUES); const used = new Set(sources.flatMap((value) => parseItems(value).map((item) => normalizeBossId(item.name)))); return Object.entries(data._bossIds || {}).filter(([, id]) => used.has(id)).map(([name, id]) => ({ name, id })).sort((a, b) => a.name.localeCompare(b.name)); }
-function normalizeBossId(name) { const aliases = { 'Ascended Delu': 'deluzhnoa_asc', 'Ascended Queen Bell': 'queen_bellandir_asc', 'Cordy': 'giant_cordy', 'Ascended Cordy': 'giant_cordy_asc' }; if (aliases[name]) return aliases[name]; const entry = Object.entries(state.schedule._bossIds || {}).find(([label]) => label.toLowerCase() === name.toLowerCase()); return entry ? entry[1] : name; }
+function normalizeBossId(name) { const aliases = { 'Ascended Aelon': 'grand_aelon_asc', 'Ascended Delu': 'deluzhnoa_asc', 'Ascended Queen Bell': 'queen_bellandir_asc', 'Cordy': 'giant_cordy', 'Ascended Cordy': 'giant_cordy_asc' }; if (aliases[name]) return aliases[name]; const entry = Object.entries(state.schedule._bossIds || {}).find(([label]) => label.toLowerCase() === name.toLowerCase()); return entry ? entry[1] : name; }
 function rotationAnchor(anchors, key) { return anchors.filter((anchor) => anchor.effectiveDate <= key).sort((a, b) => b.effectiveDate.localeCompare(a.effectiveDate))[0]; }
-function eventsForDate(key) { const { rotationSchedule } = state.schedule; const tier = rotationSchedule.tiers.t4; const anchor = rotationAnchor(rotationSchedule.t4Anchors || [{ effectiveDate: rotationSchedule.t4Start, cycleDay: 1 }], key); const gameDay = dayDifference(anchor.effectiveDate, key); const cycle = tier.cycleDays || 14; const rotationDay = ((anchor.cycleDay - 1 + gameDay) % cycle + cycle) % cycle + 1; const events = []; Object.entries(tier.days[String(rotationDay)] || {}).forEach(([slot, value]) => events.push(...eventEntries(key, tier.slots[slot], value))); (rotationSchedule.dateExtras?.[key] || []).forEach((entry) => events.push(...eventEntries(key, entry.time, entry.items, true))); return applyScheduleOverrides(events, rotationDay); }
+function eventsForDate(key) { const { rotationSchedule } = state.schedule; const tier = rotationSchedule.tiers.t4; const anchor = rotationAnchor(rotationSchedule.t4Anchors || [{ effectiveDate: rotationSchedule.t4Start, cycleDay: 1 }], key); const gameDay = dayDifference(anchor.effectiveDate, key); const cycle = tier.cycleDays || 14; const rotationDay = ((anchor.cycleDay - 1 + gameDay) % cycle + cycle) % cycle + 1; if (rotationSchedule.dateOverrides?.[key]) return rotationSchedule.dateOverrides[key].flatMap((entry) => eventEntries(key, entry.time, entry.items)); const events = []; Object.entries(tier.days[String(rotationDay)] || {}).forEach(([slot, value]) => events.push(...eventEntries(key, tier.slots[slot], value))); (rotationSchedule.dateExtras?.[key] || []).forEach((entry) => events.push(...eventEntries(key, entry.time, entry.items, true))); return applyScheduleOverrides(events, rotationDay); }
 function applyScheduleOverrides(events, rotationDay) { const overrides = ROTATION_OVERRIDES[rotationDay] || {}; const result = []; const handled = new Set(); events.forEach((event) => { const groupKey = `${event.gameDate}|${event.time}`; if (handled.has(groupKey)) return; const override = overrides[event.time]; if (!override) { result.push(event); return; } result.push(...eventEntries(event.gameDate, event.time, override)); handled.add(groupKey); }); const gameDate = events[0]?.gameDate; if (gameDate) Object.entries(overrides).forEach(([time, value]) => { const groupKey = `${gameDate}|${time}`; if (!handled.has(groupKey) && !events.some((event) => event.time === time)) result.push(...eventEntries(gameDate, time, value)); }); return result; }
-function eventDisplayName(id) { const displayNames = { giant_cordy: 'Giant Cordy', giant_cordy_asc: 'Ascended Giant Cordy' }; if (displayNames[id]) return displayNames[id]; const entry = Object.entries(state.schedule._bossIds || {}).find(([, bossId]) => bossId === id); return entry ? entry[0] : prettyName(id); }
+function eventDisplayName(id) { const displayNames = { giant_cordy: 'Giant Cordy', giant_cordy_asc: 'Ascended Giant Cordy', grand_aelon_asc: 'Ascended Grand Aelon', queen_bellandir_asc: 'Ascended Queen Bellandir' }; if (displayNames[id]) return displayNames[id]; const entry = Object.entries(state.schedule._bossIds || {}).find(([, bossId]) => bossId === id); return entry ? entry[0] : prettyName(id); }
 function eventEntries(gameDate, time, value, predicted = false) { if (!time) return []; return parseItems(value).map((item) => { const name = normalizeBossId(item.name); return { name, gameDate, time, displayName: eventDisplayName(name), guildPvp: item.guildPvp, predicted: predicted && ARCH_BOSS_IDS.has(name) }; }); }
 function isFavorite(event) { return state.favorites.includes(event.name); }
 function savedFavorites() { try { return JSON.parse(localStorage.getItem('throne-bosses-favorites') || '[]'); } catch (error) { return []; } }
