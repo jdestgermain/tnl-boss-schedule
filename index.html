@@ -194,27 +194,7 @@ body.editor-mode .calendar-section, body.editor-mode .boss-picker, body.editor-m
             14: { ct_1300: 'leviathan_asc | aridus_asc', ct_1600: 'manticus_asc | malakar_asc', ct_2030: 'pakilo_naru_asc !gpvp', ct_2200: 'pakilo_naru_asc | kowazan_asc', ct_2300: 'leviathan_asc | talus_asc', ct_2330: 'leviathan_asc !gpvp', ct_0100: 'manticus_asc | grand_aelon_asc' }
           }
         } },
-        dateExtras: {
-          '2026-09-01': [{ time: '22:00', items: 'Ascended Delu' }], '2026-09-02': [{ time: '19:00', items: 'Ramux' }, { time: '22:00', items: 'Ramux !gpvp | Ascended Queen Bell' }],
-          '2026-09-04': [{ time: '19:00', items: 'Ascended Cordy | Ascended Tevent !gpvp' }, { time: '22:00', items: 'Ascended Cordy' }], '2026-09-05': [{ time: '19:00', items: 'Ramux' }, { time: '22:00', items: 'Ramux | Ascended Cordy !gpvp' }],
-          '2026-09-08': [{ time: '19:00', items: 'Ascended Delu !gpvp | Ascended Queen Bell' }, { time: '22:00', items: 'Ascended Queen Bell' }], '2026-09-09': [{ time: '19:00', items: 'Ramux' }, { time: '22:00', items: 'Ramux | Ascended Tevent !gpvp' }],
-          '2026-09-11': [{ time: '19:00', items: 'Ascended Cordy !gpvp | Ascended Tevent' }, { time: '22:00', items: 'Ascended Tevent' }], '2026-09-12': [{ time: '19:00', items: 'Ramux' }, { time: '22:00', items: 'Ramux !gpvp | Ascended Cordy' }],
-          '2026-09-13': [{ time: '20:00', items: 'Siege !gpvp' }], '2026-09-15': [{ time: '19:00', items: 'Ascended Delu' }, { time: '22:00', items: 'Ascended Delu | Ascended Queen Bell !gpvp' }],
-          '2026-09-16': [{ time: '19:00', items: 'Ramux !gpvp | Ascended Tevent' }, { time: '22:00', items: 'Ramux' }], '2026-09-18': [{ time: '19:00', items: 'Ascended Cordy' }, { time: '22:00', items: 'Ascended Cordy | Ascended Tevent !gpvp' }],
-          '2026-09-19': [{ time: '19:00', items: 'Ramux | Ascended Delu !gpvp' }, { time: '22:00', items: 'Ramux' }]
-        },
-        dateOverrides: {
-          '2026-10-20': [
-            { time: '13:00', items: 'thuban | grand_aelon_asc' },
-            { time: '16:00', items: 'daigon_asc | cornelius_asc' },
-            { time: '19:00', items: 'vegamor' },
-            { time: '20:30', items: 'pakilo_naru_asc !gpvp' },
-            { time: '22:00', items: 'vegamor !gpvp | pakilo_naru_asc | ahzreil_asc | queen_bellandir_asc' },
-            { time: '23:00', items: 'porfos | malakar_asc' },
-            { time: '23:30', items: 'porfos !gpvp' },
-            { time: '01:00', items: 'manticus_asc | ahzreil_asc' }
-          ]
-        }
+        
       }
     };
   </script>
@@ -271,14 +251,23 @@ const DEFAULT_ROTATION_OVERRIDES = {
     '22:00': 'manticus_asc | exodus | ramux'
   },
   13: {
-    '13:00': 'thuban | morokai_asc',
-    '19:00': 'vegamor !gpvp',
+    '13:00': 'thuban | grand_aelon_asc',
+    '16:00': 'daigon_asc | cornelius_asc',
+    '19:00': 'vegamor',
     '20:30': 'pakilo_naru_asc !gpvp',
-    '22:00': 'vegamor | pakilo_naru_asc | adentus_asc',
-    '23:00': 'porfos | chernobog_asc'
+    '22:00': 'vegamor !gpvp | pakilo_naru_asc | ahzreil_asc | queen_bellandir_asc',
+    '23:00': 'porfos | malakar_asc',
+    '23:30': 'porfos !gpvp',
+    '01:00': 'manticus_asc | ahzreil_asc'
   },
   14: {
-    '22:00': 'pakilo_naru_asc | kowazan_asc | ramux | queen_bellandir_asc !gpvp',
+    '13:00': 'leviathan_asc | grand_aelon_asc',
+    '16:00': 'manticus_asc | malakar_asc',
+    '19:00': 'ramux | queen_bellandir_asc !gpvp',
+    '20:30': 'pakilo_naru_asc !gpvp',
+    '22:00': 'pakilo_naru_asc | kowazan_asc | ramux',
+    '23:00': 'leviathan_asc | talus_asc',
+    '23:30': 'leviathan_asc !gpvp',
     '01:00': 'manticus_asc | grand_aelon_asc'
   }
 };
