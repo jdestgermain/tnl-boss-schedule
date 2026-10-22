@@ -3,37 +3,12 @@
 
 ## GitHub Pages and PWA
 
-The site is deployed by `.github/workflows/static.yml` to GitHub Pages. Once the Pages deployment is live, open the site in a browser and use the browser's install or "Add to home screen" action. The app shell and embedded schedule remain available offline; live schedule refreshes when a connection is available.
+The site is deployed by `.github/workflows/static.yml` to GitHub Pages. Once the Pages deployment is live, open the site in a browser and use the browser's install or "Add to home screen" action. The app uses its embedded 14-day rotation and remains available offline.
 
-The Pages workflow fetches `schedule.json` server-side once daily at approximately 7:00 AM Central and publishes it as a same-origin file. This avoids Throne Watch's browser CORS restriction. GitHub Actions cron uses UTC, so the scheduled time is an approximation around daylight-saving changes. Local development without a downloaded `schedule.json` intentionally uses the embedded fallback.
+## Editing the schedule
 
-## Recurring schedule overrides
+The complete recurring schedule lives in the `window.EMBEDDED_SCHEDULE` object in `index.html`, under `rotationSchedule.tiers.t4.days`. The numeric keys are rotation days (`1` through `14`), and each nested key is a slot ID whose value is Central time in the `slots` map.
 
-Recurring corrections live in `ROTATION_OVERRIDES` in `index.html`. Keys are rotation-day numbers (`1` through `14`), and each nested key is the schedule time in Central time using 24-hour `HH:MM` format:
+Each event group is a pipe-separated string. Append `!gpvp` to a boss for Guild PvP. Replace the complete group at a time when correcting a schedule, and keep the event names as canonical IDs.
 
-```js
-const ROTATION_OVERRIDES = {
-	10: {
-		'13:00': 'Ascended Daigon | Grimturg',
-		'20:30': 'Exodus !gpvp'
-	}
-};
-```
-
-The replacement applies every time that rotation day and time repeats. Use `|` to separate bosses and append `!gpvp` to a boss for Guild PvP. The replacement replaces the complete event group at that time, so include every boss that should remain. Boss names must match the schedule's display names; new names also need an entry in `OVERRIDE_BOSS_IDS`.
-
-To request a future correction from an agent, provide the source date and local time, the current boss group, the desired boss group, and whether it repeats with the 14-day rotation. For example:
-
-```text
-Add this as a recurring 14-day schedule override:
-Date/time: 2026-09-19 13:00 Central
-Current: Ascended Daigon, Ascended Kowazan
-Desired: Ascended Daigon, Grimturg
-Guild PvP: no
-```
-
-The agent should convert the date/time to the matching rotation day and add or update `ROTATION_OVERRIDES`, then validate both the example date and another occurrence 14 days apart.
-
-## Schedule editor
-
-Open the site with `?editor=1` appended to the URL, for example `https://jdestgermain.github.io/tnl-boss-schedule/?editor=1`. The editor shows every source event in the 14-day rotation alongside its override fields. Use `Apply changes` to preview edits immediately, `Copy config` to copy the JavaScript configuration into `index.html`, and `Reset draft` to remove browser-local edits and restore the configured defaults. Browser-local drafts affect the calendar on that device until reset.
+After editing, reload the page and check both the changed date and the same rotation day 14 days later.
